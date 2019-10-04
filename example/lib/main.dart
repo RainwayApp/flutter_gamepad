@@ -13,6 +13,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
+  dynamic _lastEvent;
+  StreamSubscription<GamepadEvent> _subscription;
 
   @override
   void initState() {
@@ -22,6 +24,8 @@ class _MyAppState extends State<MyApp> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
+    _subscription = FlutterGamepad.eventStream.listen(onGamepadEvent);
+
     String platformVersion;
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
@@ -40,6 +44,17 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+
+  void onGamepadEvent(GamepadEvent e) {
+    setState(() {
+      _lastEvent = e.underlying;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -48,7 +63,7 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: Text('Running on: $_platformVersion\nLast event: $_lastEvent'),
         ),
       ),
     );
