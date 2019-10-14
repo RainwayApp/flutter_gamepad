@@ -13,7 +13,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
-  dynamic _lastEvent;
+  List<String> _eventLog = [];
   StreamSubscription<GamepadEvent> _subscription;
 
   @override
@@ -49,10 +49,19 @@ class _MyAppState extends State<MyApp> {
     super.dispose();
   }
 
+  String _describeEvent(GamepadEvent e) {
+    if (e is GamepadConnectedEvent) {
+      return 'Gamepad connected: ${e.gamepadInfo.vendorName}';
+    } else if (e is GamepadDisconnectedEvent) {
+      return 'Gamepad disconnected: ${e.gamepadInfo.vendorName}';
+    } else {
+      return 'Unknown event: $e';
+    }
+  }
+
   void onGamepadEvent(GamepadEvent e) {
-    setState(() {
-      _lastEvent = e.underlying;
-    });
+    if (_eventLog.length >= 10) _eventLog.removeAt(0);
+    _eventLog.add(_describeEvent(e));
   }
 
   @override
@@ -63,7 +72,7 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\nLast event: $_lastEvent'),
+          child: Text('Running on: $_platformVersion\n${_eventLog.join('\n')}'),
         ),
       ),
     );

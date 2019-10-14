@@ -1,15 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'gamepad_event.dart';
 
-class GamepadEvent {
-  dynamic underlying;
-  GamepadEvent(this.underlying);
-}
-
-GamepadEvent _decodeGamepadEvent(dynamic d) {
-  return GamepadEvent(d);
-}
+export 'gamepad_event.dart';
 
 class FlutterGamepad {
   static const MethodChannel _methodChannel =
@@ -21,7 +15,7 @@ class FlutterGamepad {
   static Stream<GamepadEvent> _eventStream;
 
   static Stream<GamepadEvent> get eventStream {
-    _eventStream ??= _eventChannel.receiveBroadcastStream().map(_decodeGamepadEvent);
+    _eventStream ??= _eventChannel.receiveBroadcastStream().map((x) => GamepadEvent.decode(x));
     return _eventStream;
   }
 
