@@ -1,3 +1,11 @@
+## 0.0.3
+
+Hide some internals and write a README for the example.
+
+## 0.0.2
+
+Write a README.
+
 ## 0.0.1
 
 Initial release.

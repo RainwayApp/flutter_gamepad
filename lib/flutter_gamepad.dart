@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'gamepad_event.dart';
+import 'src/gamepad_event.dart';
 
-export 'gamepad_event.dart';
+export 'src/gamepad_event.dart';
 
 /// The public API for the flutter_gamepad library.
 ///
