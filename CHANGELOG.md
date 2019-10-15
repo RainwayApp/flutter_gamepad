@@ -1,3 +1,7 @@
+## 0.0.4
+
+Run flutter format and add a stripped-down example to the library README.
+
 ## 0.0.3
 
 Hide some internals and write a README for the example.
