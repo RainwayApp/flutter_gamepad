@@ -2,6 +2,30 @@ import Flutter
 import UIKit
 import GameController
 
+enum Button : Int {
+  case a = 0
+  case b
+  case x
+  case y
+  case dpadUp
+  case dpadDown
+  case dpadLeft
+  case dpadRight
+  case menu
+  case options
+  case leftThumbstickButton
+  case rightThumbstickButton
+  case leftShoulder
+  case rightShoulder
+  case leftTrigger
+  case rightTrigger
+}
+
+enum Thumbstick : Int {
+  case left = 0
+  case right
+}
+
 @objc class GamepadStreamHandler: NSObject, FlutterStreamHandler {
   private var eventSink: FlutterEventSink?
   private var gamepads: [GCExtendedGamepad] = []
@@ -15,6 +39,7 @@ import GameController
       result["productCategory"] = gamepad.controller?.productCategory as Any;
       // result["isSnapshot"] = gamepad.controller?.isSnapshot as Any;
     }
+    result["id"] = gamepad.hash;
     return result
   }
 
@@ -68,14 +93,48 @@ import GameController
 
   private func gamepadConnected(gamepad: GCExtendedGamepad) {
     guard let eventSink = eventSink else { return }
-    eventSink(["event": "gamepadConnected", "gamepadInfo": gamepadInfoDictionary(gamepad: gamepad)])
-    gamepad.buttonA.valueChangedHandler = { (_, _, b) in eventSink(["event": "button", "button": "buttonA", "value": b]) }
+    func buttonHandler(_ button: Button) -> GCControllerButtonValueChangedHandler {
+      return { (_, value, pressed) in eventSink(["event": "button", "gamepadId": gamepad.hash, "button": button.rawValue, "value": value, "pressed": pressed]) }
+    }
+    func thumbstickHandler(_ thumbstick: Thumbstick) -> GCControllerDirectionPadValueChangedHandler {
+      // We flip the Y-axis direction here: our library has Y+ = down in line with Flutter's coordinate system, but iOS has Y+ = up.
+      return { (_, x, y) in eventSink(["event": "thumbstick", "gamepadId": gamepad.hash, "thumbstick": thumbstick.rawValue, "x": x, "y": -y]) }
+    }
+    eventSink(["event": "gamepadConnected", "gamepadId": gamepad.hash, "gamepadInfo": gamepadInfoDictionary(gamepad: gamepad)])
+    gamepad.buttonA.valueChangedHandler = buttonHandler(.a)
+    gamepad.buttonB.valueChangedHandler = buttonHandler(.b)
+    gamepad.buttonX.valueChangedHandler = buttonHandler(.x)
+    gamepad.buttonY.valueChangedHandler = buttonHandler(.y)
+    if #available(iOS 13.0, *) {
+      gamepad.buttonOptions?.valueChangedHandler = buttonHandler(.options)
+        gamepad.buttonMenu.valueChangedHandler = buttonHandler(.menu)
+    } else {
+      gamepad.controller?.controllerPausedHandler = { (_) in
+        eventSink(["event": "button", "gamepadId": gamepad.hash, "button": Button.menu.rawValue, "value": 1.0])
+        eventSink(["event": "button", "gamepadId": gamepad.hash, "button": Button.menu.rawValue, "value": 0.0])
+      }
+    }
+          gamepad.leftShoulder.valueChangedHandler = buttonHandler(.leftShoulder)
+          gamepad.leftTrigger.valueChangedHandler = buttonHandler(.leftTrigger)
+          gamepad.rightShoulder.valueChangedHandler = buttonHandler(.rightShoulder)
+          gamepad.rightTrigger.valueChangedHandler = buttonHandler(.rightTrigger)
+          gamepad.dpad.up.valueChangedHandler = buttonHandler(.dpadUp)
+          gamepad.dpad.down.valueChangedHandler = buttonHandler(.dpadDown)
+
+          gamepad.dpad.left.valueChangedHandler = buttonHandler(.dpadLeft)
+          gamepad.dpad.right.valueChangedHandler = buttonHandler(.dpadRight)
+    if #available(iOS 12.1, *) {
+      gamepad.leftThumbstickButton?.valueChangedHandler = buttonHandler(.leftThumbstickButton)
+      gamepad.rightThumbstickButton?.valueChangedHandler = buttonHandler(.rightThumbstickButton)
+    }
+    gamepad.leftThumbstick.valueChangedHandler = thumbstickHandler(.left)
+    gamepad.rightThumbstick.valueChangedHandler = thumbstickHandler(.right)
     gamepads.append(gamepad);
   }
 
   private func gamepadDisconnected(gamepad: GCExtendedGamepad) {
     guard let eventSink = eventSink else { return }
-    eventSink(["event": "gamepadDisconnected", "gamepadInfo": gamepadInfoDictionary(gamepad: gamepad)])
+    eventSink(["event": "gamepadDisconnected", "gamepadId": gamepad.hash, "gamepadInfo": gamepadInfoDictionary(gamepad: gamepad)])
     gamepads.removeAll { $0 == gamepad };
   }
 }
