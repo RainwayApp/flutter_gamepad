@@ -18,7 +18,7 @@ class GamepadInfo {
   final bool isAttachedToDevice;
 
   /// This gamepad's unique identifying number.
-  /// 
+  ///
   /// Note that this value does not persist beyond disconnect and reconnect events: when the controller reconnects, its [id] will change.
   /// The only guarantee is that the number is unique among all controllers currently connected.
   final int id;

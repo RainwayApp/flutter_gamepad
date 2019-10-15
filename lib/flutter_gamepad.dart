@@ -11,18 +11,18 @@ export 'src/gamepad_event.dart';
 /// ```
 /// class _MyWidgetState extends State<MyWidget> {
 ///   StreamSubscription<GamepadEvent> _gamepadEventSubscription;
-/// 
+///
 ///   @override
 ///   void initState() {
 ///     super.initState();
 ///     _gamepadEventSubscription = FlutterGamepad.eventStream.listen(onGamepadEvent);
 ///   }
-/// 
+///
 ///   void dispose() {
 ///     _gamepadEventSubscription.cancel();
 ///     super.dispose();
 ///   }
-/// 
+///
 ///   /// Handle a flutter_gamepad [GamepadEvent].
 ///   void onGamepadEvent(GamepadEvent e) {
 ///     if (e is GamepadConnectedEvent) {
@@ -47,7 +47,9 @@ class FlutterGamepad {
 
   /// A stream of [GamepadEvent]s.
   static Stream<GamepadEvent> get eventStream {
-    _eventStream ??= _eventChannel.receiveBroadcastStream().map((x) => GamepadEvent.decode(x));
+    _eventStream ??= _eventChannel
+        .receiveBroadcastStream()
+        .map((x) => GamepadEvent.decode(x));
     return _eventStream;
   }
 }

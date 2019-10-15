@@ -29,16 +29,16 @@ enum Thumbstick {
 }
 
 /// An event originating from a gamepad.
-/// 
+///
 /// This is an abstract class with the following concrete implementing classes:
-/// 
+///
 /// * [GamepadConnectedEvent], when a gamepad is connected to the device.
 /// * [GamepadDisconnectedEvent], when a gamepad is disconnected from the device.
 /// * [GamepadButtonEvent], when a button or analog trigger's state changes.
 /// * [GamepadThumbstickEvent], when a 2D analog thumbstick's state changes.
-/// 
+///
 /// To consume one of these events, use code like:
-/// 
+///
 /// ```
 /// void onGamepadEvent(GamepadEvent e) {
 ///   if (e is GamepadConnectedEvent) {
@@ -54,7 +54,7 @@ enum Thumbstick {
 ///   }
 /// }
 /// ```
-/// 
+///
 abstract class GamepadEvent {
   factory GamepadEvent.decode(dynamic message) {
     print('decode: $message');
@@ -91,21 +91,22 @@ abstract class GamepadEvent {
 /// A gamepad event that fires when a controller is connected.
 class GamepadConnectedEvent implements GamepadEvent {
   /// A number uniquely identifying the gamepad that was newly connected.
-  /// 
+  ///
   /// Note that this value does not persist beyond disconnect and reconnect events: when the controller reconnects, its [id] will change.
   /// The only guarantee is that the number is unique among all controllers currently connected.
   final int gamepadId;
-  
+
   /// A record containing further information about this gamepad.
   final GamepadInfo gamepadInfo;
-  
-  const GamepadConnectedEvent({@required this.gamepadId, @required this.gamepadInfo});
+
+  const GamepadConnectedEvent(
+      {@required this.gamepadId, @required this.gamepadInfo});
 }
 
 /// A gamepad event that fires when a controller is disconnected.
 class GamepadDisconnectedEvent implements GamepadEvent {
   /// A number uniquely identifying the gamepad that was disconnected.
-  /// 
+  ///
   /// Note that this value does not persist beyond disconnect and reconnect events: when the controller reconnects, its [id] will change.
   /// The only guarantee is that the number is unique among all controllers currently connected.
   final int gamepadId;
@@ -113,7 +114,8 @@ class GamepadDisconnectedEvent implements GamepadEvent {
   /// A record containing further information about this gamepad.
   final GamepadInfo gamepadInfo;
 
-  const GamepadDisconnectedEvent({@required this.gamepadId, @required this.gamepadInfo});
+  const GamepadDisconnectedEvent(
+      {@required this.gamepadId, @required this.gamepadInfo});
 }
 
 /// A gamepad event describing a button state change.
