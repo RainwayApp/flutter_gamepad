@@ -1,14 +1,12 @@
 # flutter_gamepad
 
-A new flutter plugin project.
+A platform library for listening to hardware gamepads (game controllers) from Flutter.
 
-## Getting Started
+**Currently supports iOS only. Android coming soon!**
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/developing-packages/),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+## Features
 
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.dev/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.
+* Any widget can listen to a GamepadEvent broadcast stream. It fires "connect", "disconnect", "button input" and "stick input" events.
+* Supports fractional button values, such as those reported by the left and right trigger buttons on most gamepads.
+* Supports iOS 13+, as well as older versions of iOS.
+* Supports multiple simultaneous gamepads. Events are tagged with an ID you can tell gamepads apart by.
