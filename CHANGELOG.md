@@ -1,3 +1,7 @@
+## 0.0.5
+
+Remove some stray debugging code.
+
 ## 0.0.4
 
 Run flutter format and add a stripped-down example to the library README.
