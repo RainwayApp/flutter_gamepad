@@ -57,7 +57,6 @@ enum Thumbstick {
 ///
 abstract class GamepadEvent {
   factory GamepadEvent.decode(dynamic message) {
-    print('decode: $message');
     if (message['event'] == 'gamepadConnected') {
       return GamepadConnectedEvent(
         gamepadId: message['gamepadId'],
