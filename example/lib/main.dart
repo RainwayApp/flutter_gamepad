@@ -13,6 +13,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   List<GamepadEvent> _eventLog = [];
   StreamSubscription<GamepadEvent> _subscription;
+  List<GamepadInfo> _gamepads;
 
   @override
   void initState() {
@@ -55,6 +56,13 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  Future<void> _fetchGamepads() async {
+    final gamepads = await FlutterGamepad.gamepads();
+    setState(() {
+      _gamepads = gamepads;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -63,8 +71,14 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Text('Running on: ${Theme.of(context).platform}\n' +
-              _eventLog.map(_describeEvent).toList().join('\n')),
+          child: Column(
+            children: [
+              Text('Running on: ${Theme.of(context).platform}\n' +
+                  _eventLog.map(_describeEvent).toList().join('\n')),
+              RaisedButton(onPressed: _fetchGamepads, child: Text('Call gamepads()')),
+              Text('gamepads = $_gamepads'),
+            ],
+          ),
         ),
       ),
     );

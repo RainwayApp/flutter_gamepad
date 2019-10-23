@@ -6,6 +6,7 @@ A platform library for listening to hardware gamepads (game controllers) from Fl
 
 ## Features
 
+* `FlutterGamepad.gamepads()` returns info about all currently connected gamepads.
 * `FlutterGamepad.eventStream` reports gamepad events.
 * Fractional button values, such as those reported by the left and right trigger buttons on most gamepads, are supported.
 * Supports iOS 13+, as well as older versions of iOS.

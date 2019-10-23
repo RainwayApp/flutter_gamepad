@@ -1,3 +1,7 @@
+## 0.1.0
+
+Add a `gamepads` method for retrieving current gamepad info.
+
 ## 0.0.5
 
 Remove some stray debugging code.

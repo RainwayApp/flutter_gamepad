@@ -43,6 +43,10 @@ enum Thumbstick : Int {
     return result
   }
 
+  public func allGamepadInfoDictionaries() -> [[String: Any]] {
+    return gamepads.map(gamepadInfoDictionary)
+  }
+
   public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
     eventSink = events
 
@@ -152,7 +156,10 @@ public class SwiftFlutterGamepadPlugin: NSObject, FlutterPlugin {
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-
-    result("iOS " + UIDevice.current.systemVersion)
+    if (call.method == "gamepads") {
+      result(gamepadStreamHandler.allGamepadInfoDictionaries());
+    } else {
+      result(FlutterMethodNotImplemented);
+    }
   }
 }
