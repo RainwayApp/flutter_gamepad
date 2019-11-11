@@ -111,22 +111,22 @@ enum Thumbstick : Int {
     gamepad.buttonY.valueChangedHandler = buttonHandler(.y)
     if #available(iOS 13.0, *) {
       gamepad.buttonOptions?.valueChangedHandler = buttonHandler(.options)
-        gamepad.buttonMenu.valueChangedHandler = buttonHandler(.menu)
+      gamepad.buttonMenu.valueChangedHandler = buttonHandler(.menu)
     } else {
       gamepad.controller?.controllerPausedHandler = { (_) in
         eventSink(["event": "button", "gamepadId": gamepad.hash, "button": Button.menu.rawValue, "value": 1.0])
         eventSink(["event": "button", "gamepadId": gamepad.hash, "button": Button.menu.rawValue, "value": 0.0])
       }
     }
-          gamepad.leftShoulder.valueChangedHandler = buttonHandler(.leftShoulder)
-          gamepad.leftTrigger.valueChangedHandler = buttonHandler(.leftTrigger)
-          gamepad.rightShoulder.valueChangedHandler = buttonHandler(.rightShoulder)
-          gamepad.rightTrigger.valueChangedHandler = buttonHandler(.rightTrigger)
-          gamepad.dpad.up.valueChangedHandler = buttonHandler(.dpadUp)
-          gamepad.dpad.down.valueChangedHandler = buttonHandler(.dpadDown)
+    gamepad.leftShoulder.valueChangedHandler = buttonHandler(.leftShoulder)
+    gamepad.leftTrigger.valueChangedHandler = buttonHandler(.leftTrigger)
+    gamepad.rightShoulder.valueChangedHandler = buttonHandler(.rightShoulder)
+    gamepad.rightTrigger.valueChangedHandler = buttonHandler(.rightTrigger)
+    gamepad.dpad.up.valueChangedHandler = buttonHandler(.dpadUp)
+    gamepad.dpad.down.valueChangedHandler = buttonHandler(.dpadDown)
 
-          gamepad.dpad.left.valueChangedHandler = buttonHandler(.dpadLeft)
-          gamepad.dpad.right.valueChangedHandler = buttonHandler(.dpadRight)
+    gamepad.dpad.left.valueChangedHandler = buttonHandler(.dpadLeft)
+    gamepad.dpad.right.valueChangedHandler = buttonHandler(.dpadRight)
     if #available(iOS 12.1, *) {
       gamepad.leftThumbstickButton?.valueChangedHandler = buttonHandler(.leftThumbstickButton)
       gamepad.rightThumbstickButton?.valueChangedHandler = buttonHandler(.rightThumbstickButton)
