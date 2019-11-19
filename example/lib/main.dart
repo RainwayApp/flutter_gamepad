@@ -72,11 +72,12 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Center(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text('Running on: ${Theme.of(context).platform}\n' +
                   _eventLog.map(_describeEvent).toList().join('\n')),
               RaisedButton(onPressed: _fetchGamepads, child: Text('Call gamepads()')),
-              Text('gamepads = $_gamepads'),
+              Text('gamepads = ${_gamepads?.map((pad) => pad.vendorName)}'),
             ],
           ),
         ),
