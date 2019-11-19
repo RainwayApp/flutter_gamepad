@@ -14,13 +14,20 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
 import io.flutter.plugin.editing.TextInputPlugin
+import java.lang.reflect.Field
 
+/**
+ * An extension of Flutter's AndroidTouchProcessor that delegates MotionEvents to the GamepadStreamHandler.
+ */
 class GamepadAndroidTouchProcessor(renderer: FlutterRenderer) : AndroidTouchProcessor(renderer) {
     override fun onGenericMotionEvent(event: MotionEvent): Boolean {
         return GamepadStreamHandler.processMotionEvent(event) || super.onGenericMotionEvent(event)
     }
 }
 
+/**
+ * An extension of Flutter's AndroidKeyProcessor that delegates KeyEvents to the GamepadStreamHandler.
+ */
 class GamepadAndroidKeyProcessor(keyEventChannel: KeyEventChannel, textInputPlugin: TextInputPlugin) : AndroidKeyProcessor(keyEventChannel, textInputPlugin) {
     override fun onKeyDown(keyEvent: KeyEvent) {
         val handled = GamepadStreamHandler.processKeyDownEvent(keyEvent)
@@ -37,6 +44,9 @@ class GamepadAndroidKeyProcessor(keyEventChannel: KeyEventChannel, textInputPlug
     }
 }
 
+/**
+ * The flutter_gamepad plugin class that is registered with the framework.
+ */
 class FlutterGamepadPlugin : MethodCallHandler {
     companion object {
         @JvmStatic
@@ -47,23 +57,23 @@ class FlutterGamepadPlugin : MethodCallHandler {
             eventChannel.setStreamHandler(GamepadStreamHandler)
 
             val view: FlutterView = registrar.view()
+            fun viewField(name: String): Field {
+                val field = FlutterView::class.java.getDeclaredField(name)
+                field.isAccessible = true
+                return field
+            }
 
             // Hack: swap in a new AndroidTouchProcessor.
-            val touchProcessorField = FlutterView::class.java.getDeclaredField("androidTouchProcessor")
-            touchProcessorField.isAccessible = true
-            val rendererField = FlutterView::class.java.getDeclaredField("flutterRenderer")
-            rendererField.isAccessible = true
+            val touchProcessorField = viewField("androidTouchProcessor")
+            val rendererField = viewField("flutterRenderer")
             val renderer = rendererField.get(view) as FlutterRenderer
             val touchProcessor = GamepadAndroidTouchProcessor(renderer)
             touchProcessorField.set(view, touchProcessor)
 
             // Hack: swap in a new AndroidKeyProcessor.
-            val keyProcessorField = FlutterView::class.java.getDeclaredField("androidKeyProcessor")
-            keyProcessorField.isAccessible = true
-            val keyEventChannelField = FlutterView::class.java.getDeclaredField("keyEventChannel")
-            keyEventChannelField.isAccessible = true
-            val textInputPluginField = FlutterView::class.java.getDeclaredField("mTextInputPlugin")
-            textInputPluginField.isAccessible = true
+            val keyProcessorField = viewField("androidKeyProcessor")
+            val keyEventChannelField = viewField("keyEventChannel")
+            val textInputPluginField = viewField("mTextInputPlugin")
             val keyEventChannel = keyEventChannelField.get(view) as KeyEventChannel
             val textInputPlugin = textInputPluginField.get(view) as TextInputPlugin
             val keyProcessor = GamepadAndroidKeyProcessor(keyEventChannel, textInputPlugin)
@@ -73,7 +83,7 @@ class FlutterGamepadPlugin : MethodCallHandler {
 
     override fun onMethodCall(call: MethodCall, result: Result) {
         if (call.method == "gamepads") {
-            result.success(GamepadStreamHandler.allGamepadInfoDictionaries())
+            result.success(allGamepadInfoDictionaries())
         } else {
             result.notImplemented()
         }

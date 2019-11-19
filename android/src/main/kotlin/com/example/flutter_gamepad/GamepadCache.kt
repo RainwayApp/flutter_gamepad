@@ -60,11 +60,8 @@ class GamepadState(val eventSink: EventChannel.EventSink, val deviceId: Int) {
     }
 
     private fun normalize(value: Float): Float {
-        return if (value.absoluteValue < AXIS_THRESHOLD) {
-            0.0f
-        } else {
-            value
-        }
+        return if (value.absoluteValue < AXIS_THRESHOLD) 0.0f else value
+
     }
 
     fun handleThumbstick(event: MotionEvent, thumbstick: Thumbstick, xAxis: Int, yAxis: Int) {
