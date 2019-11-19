@@ -2,15 +2,19 @@
 
 A platform library for listening to hardware gamepads (game controllers) from Flutter.
 
-**Currently supports iOS only. Android coming soon!**
-
 ## Features
 
 * `FlutterGamepad.gamepads()` returns info about all currently connected gamepads.
 * `FlutterGamepad.eventStream` reports gamepad events.
 * Fractional button values, such as those reported by the left and right trigger buttons on most gamepads, are supported.
 * Supports iOS 13+, as well as older versions of iOS.
+* Supports Android.
 * Supports multiple simultaneous gamepads. Events are tagged with an ID you can tell gamepads apart by.
+
+## Caveats
+
+* On Android, the B button seems to trigger a "back" action. You'll want to have a `WillPopScope` on your game scaffold to prevent this.
+* On Android, "disconnect" events are never fired. "Connect" events are fired initially when listening to the stream, and thereafter on the first input of any new gamepads. This differs from the iOS behavior, where a "connect" event is sent when the connection is established even if no buttons have been pressed.
 
 ## Example
 
