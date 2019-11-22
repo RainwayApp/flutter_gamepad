@@ -18,6 +18,7 @@ import java.lang.reflect.Field
 
 /**
  * An extension of Flutter's AndroidTouchProcessor that delegates MotionEvents to the GamepadStreamHandler.
+ * (On Android, thumbstick events from a gamepad are a kind of MotionEvent.)
  */
 class GamepadAndroidTouchProcessor(renderer: FlutterRenderer) : AndroidTouchProcessor(renderer) {
     override fun onGenericMotionEvent(event: MotionEvent): Boolean {
@@ -27,6 +28,7 @@ class GamepadAndroidTouchProcessor(renderer: FlutterRenderer) : AndroidTouchProc
 
 /**
  * An extension of Flutter's AndroidKeyProcessor that delegates KeyEvents to the GamepadStreamHandler.
+ * (On Android, button events from a gamepad are a kind of KeyEvent.)
  */
 class GamepadAndroidKeyProcessor(keyEventChannel: KeyEventChannel, textInputPlugin: TextInputPlugin) : AndroidKeyProcessor(keyEventChannel, textInputPlugin) {
     override fun onKeyDown(keyEvent: KeyEvent) {
