@@ -1,3 +1,7 @@
+## 0.2.0
+
+- Bump Kotlin version
+
 ## 0.1.0
 
 Add a `gamepads` method for retrieving current gamepad info.
