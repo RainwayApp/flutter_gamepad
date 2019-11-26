@@ -66,18 +66,22 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-        ),
-        body: Center(
-          child: Column(
-            children: [
-              Text('Running on: ${Theme.of(context).platform}\n' +
-                  _eventLog.map(_describeEvent).toList().join('\n')),
-              RaisedButton(onPressed: _fetchGamepads, child: Text('Call gamepads()')),
-              Text('gamepads = $_gamepads'),
-            ],
+      home: WillPopScope(
+        onWillPop: () async => false,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('Plugin example app'),
+          ),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Running on: ${Theme.of(context).platform}\n' +
+                    _eventLog.map(_describeEvent).toList().join('\n')),
+                RaisedButton(onPressed: _fetchGamepads, child: Text('Call gamepads()')),
+                Text('gamepads = ${_gamepads?.map((pad) => pad.vendorName)}'),
+              ],
+            ),
           ),
         ),
       ),
