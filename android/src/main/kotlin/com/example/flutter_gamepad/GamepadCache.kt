@@ -77,7 +77,7 @@ class GamepadState(val eventSink: EventChannel.EventSink, val deviceId: Int) {
     fun handleAxisButton(event: MotionEvent, button: Button, axis: Int) {
         val value = normalize(event.getAxisValue(axis))
         if (axisValue(axis) != value) {
-            sendEvent("event" to "button", "button" to button.ordinal, "value" to value)
+            sendButtonEvent(button.ordinal, value)
         }
         axisValues[axis] = value
     }
@@ -89,20 +89,25 @@ class GamepadState(val eventSink: EventChannel.EventSink, val deviceId: Int) {
         val wasPlus = old > 0.0f
         val nowPlus = new > 0.0f
         if (!wasPlus && nowPlus) {
-            sendEvent("event" to "button", "button" to buttonPlus.ordinal, "value" to 1.0f)
+            sendButtonEvent(buttonPlus.ordinal, 1.0f)
         } else if (wasPlus && !nowPlus) {
-            sendEvent("event" to "button", "button" to buttonPlus.ordinal, "value" to 0.0f)
+            sendButtonEvent(buttonPlus.ordinal, 0.0f)
         }
 
         val wasMinus = old < 0.0f
         val nowMinus = new < 0.0f
         if (!wasMinus && nowMinus) {
-            sendEvent("event" to "button", "button" to buttonMinus.ordinal, "value" to 1.0f)
+            sendButtonEvent(buttonMinus.ordinal, 1.0f)
         } else if (wasMinus && !nowMinus) {
-            sendEvent("event" to "button", "button" to buttonMinus.ordinal, "value" to 0.0f)
+            sendButtonEvent(buttonMinus.ordinal, 0.0f)
         }
 
         axisValues[axis] = new
+    }
+
+    private fun sendButtonEvent(button: Int, value: Float) {
+        val pressed = value > AXIS_THRESHOLD
+        sendEvent("event" to "button", "button" to button, "value" to value, "pressed" to pressed)
     }
 
     fun buttonDown(button: Button) {
@@ -112,7 +117,7 @@ class GamepadState(val eventSink: EventChannel.EventSink, val deviceId: Int) {
         if (button == Button.DpadUp) axisValues[MotionEvent.AXIS_HAT_Y] = -1.0f
         if (button == Button.DpadDown) axisValues[MotionEvent.AXIS_HAT_Y] = +1.0f
 
-        sendEvent("event" to "button", "button" to button.ordinal, "value" to 1.0f)
+        sendButtonEvent(button.ordinal, 1.0f)
     }
 
     fun buttonUp(button: Button) {
@@ -120,7 +125,7 @@ class GamepadState(val eventSink: EventChannel.EventSink, val deviceId: Int) {
         if (button == Button.DpadLeft || button == Button.DpadRight) axisValues[MotionEvent.AXIS_HAT_X] = 0.0f
         if (button == Button.DpadUp || button == Button.DpadDown) axisValues[MotionEvent.AXIS_HAT_Y] = 0.0f
 
-        sendEvent("event" to "button", "button" to button.ordinal, "value" to 0.0f)
+        sendButtonEvent(button.ordinal, 0.0f)
     }
 }
 
