@@ -1,6 +1,6 @@
 name: flutter_gamepad
 description: An iOS gamepad library for Flutter. (Android support coming soon.)
-version: 0.2.0
+version: 0.2.1
 author: Rainway, Inc. <code@rainway.com>
 homepage: https://github.com/RainwayApp/flutter_gamepad
 

@@ -1,3 +1,7 @@
+## 0.2.1
+
+- Add "pressed" key to button events
+
 ## 0.2.0
 
 - Bump Kotlin version
