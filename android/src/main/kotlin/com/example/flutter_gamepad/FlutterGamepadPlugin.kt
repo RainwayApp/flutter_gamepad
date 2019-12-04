@@ -41,7 +41,7 @@ class GamepadAndroidKeyProcessor(keyEventChannel: KeyEventChannel, textInputPlug
     override fun onKeyUp(keyEvent: KeyEvent) {
         val handled = GamepadStreamHandler.processKeyUpEvent(keyEvent)
         if (!handled) {
-            super.onKeyDown(keyEvent)
+            super.onKeyUp(keyEvent)
         }
     }
 }

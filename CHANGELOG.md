@@ -1,3 +1,7 @@
+## 0.3.0
+
+- Fix keyup events
+
 ## 0.2.1
 
 - Add "pressed" key to button events
