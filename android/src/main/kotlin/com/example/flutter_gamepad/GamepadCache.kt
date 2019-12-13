@@ -178,10 +178,9 @@ class GamepadCache(val eventSink: EventChannel.EventSink) {
      * or false if it should be bubbled up.
      */
     fun processKeyUpEvent(keyEvent: KeyEvent): Boolean {
-        val state = gamepadState(keyEvent.deviceId)
         val button = buttonMap[keyEvent.keyCode]
         if (button != null) {
-            state.buttonUp(button)
+            gamepadState(keyEvent.deviceId).buttonUp(button)
             return true
         }
         return false

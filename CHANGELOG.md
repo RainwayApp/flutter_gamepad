@@ -1,3 +1,7 @@
+## 0.3.1
+
+- Don't create a gamepadState for just any keyUp event
+
 ## 0.3.0
 
 - Fix keyup events
