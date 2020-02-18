@@ -1,3 +1,7 @@
+## 0.3.2
+
+- Don't handle button events from non-gamepads
+
 ## 0.3.1
 
 - Don't create a gamepadState for just any keyUp event

@@ -7,6 +7,9 @@ import android.view.MotionEvent
 import io.flutter.plugin.common.EventChannel
 import kotlin.math.absoluteValue
 
+val KeyEvent.isFromGamepad: Boolean
+    get() = (source and InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
+
 val MotionEvent.isJoystickMove: Boolean
     get() = Build.VERSION.SDK_INT >= 18 && isFromSource(InputDevice.SOURCE_CLASS_JOYSTICK) && action == MotionEvent.ACTION_MOVE
 
@@ -165,12 +168,10 @@ class GamepadCache(val eventSink: EventChannel.EventSink) {
      * or false if it should be bubbled up.
      */
     fun processKeyDownEvent(keyEvent: KeyEvent): Boolean {
-        val button = buttonMap[keyEvent.keyCode]
-        if (button != null) {
-            gamepadState(keyEvent.deviceId).buttonDown(button)
-            return true
-        }
-        return false
+        if (!keyEvent.isFromGamepad) return false
+        val button = buttonMap[keyEvent.keyCode] ?: return false
+        gamepadState(keyEvent.deviceId).buttonDown(button)
+        return true
     }
 
     /**
@@ -178,12 +179,10 @@ class GamepadCache(val eventSink: EventChannel.EventSink) {
      * or false if it should be bubbled up.
      */
     fun processKeyUpEvent(keyEvent: KeyEvent): Boolean {
-        val button = buttonMap[keyEvent.keyCode]
-        if (button != null) {
-            gamepadState(keyEvent.deviceId).buttonUp(button)
-            return true
-        }
-        return false
+        if (!keyEvent.isFromGamepad) return false
+        val button = buttonMap[keyEvent.keyCode] ?: return false
+        gamepadState(keyEvent.deviceId).buttonUp(button)
+        return true
     }
 
     /**
