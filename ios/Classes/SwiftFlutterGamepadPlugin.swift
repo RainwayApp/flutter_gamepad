@@ -35,7 +35,7 @@ enum Thumbstick : Int {
     result["isAttachedToDevice"] = gamepad.controller?.isAttachedToDevice as Any;
     // result["playerIndex"] = gamepad.controller?.playerIndex.rawValue as Any;
     result["vendorName"] = gamepad.controller?.vendorName as Any;
-    if #available(iOS 13.0, *) {
+    if #available(iOS 13.0, tvOS 13.0, *) {
       result["productCategory"] = gamepad.controller?.productCategory as Any;
       // result["isSnapshot"] = gamepad.controller?.isSnapshot as Any;
     }
@@ -109,7 +109,7 @@ enum Thumbstick : Int {
     gamepad.buttonB.valueChangedHandler = buttonHandler(.b)
     gamepad.buttonX.valueChangedHandler = buttonHandler(.x)
     gamepad.buttonY.valueChangedHandler = buttonHandler(.y)
-    if #available(iOS 13.0, *) {
+    if #available(iOS 13.0, tvOS 13.0, *) {
       gamepad.buttonOptions?.valueChangedHandler = buttonHandler(.options)
       gamepad.buttonMenu.valueChangedHandler = buttonHandler(.menu)
     } else {
@@ -127,7 +127,7 @@ enum Thumbstick : Int {
 
     gamepad.dpad.left.valueChangedHandler = buttonHandler(.dpadLeft)
     gamepad.dpad.right.valueChangedHandler = buttonHandler(.dpadRight)
-    if #available(iOS 12.1, *) {
+    if #available(iOS 12.1, tvOS 12.1, *) {
       gamepad.leftThumbstickButton?.valueChangedHandler = buttonHandler(.leftThumbstickButton)
       gamepad.rightThumbstickButton?.valueChangedHandler = buttonHandler(.rightThumbstickButton)
     }
