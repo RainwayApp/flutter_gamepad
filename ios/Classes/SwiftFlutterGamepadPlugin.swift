@@ -30,9 +30,15 @@ enum Thumbstick : Int {
   private var eventSink: FlutterEventSink?
   private var gamepads: [GCExtendedGamepad] = []
 
+  // In practice, `isAttachedToDevice` sometimes throws for some godforsaken internal reason (array index out of bounds),
+  // but it isn't marked `throws`, so `try?` will cause a warning. This wrapper *is* marked `throws`, to remedy this.
+  private func gamepadIsAttachedToDevice(gamepad: GCExtendedGamepad) throws -> Bool? {
+    return gamepad.controller?.isAttachedToDevice
+  }
+
   private func gamepadInfoDictionary(gamepad: GCExtendedGamepad) -> [String: Any] {
     var result: [String: Any] = [:];
-    result["isAttachedToDevice"] = gamepad.controller?.isAttachedToDevice as Any;
+    result["isAttachedToDevice"] = try? gamepadIsAttachedToDevice(gamepad: gamepad) as Any;
     // result["playerIndex"] = gamepad.controller?.playerIndex.rawValue as Any;
     result["vendorName"] = gamepad.controller?.vendorName as Any;
     if #available(iOS 13.0, tvOS 13.0, *) {
