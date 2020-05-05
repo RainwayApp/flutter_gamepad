@@ -27,23 +27,27 @@ const val AXIS_THRESHOLD: Float = 0.01f
  * close to 0. Such positions are snapped exactly to 0, so that not every slight spurious movement
  * of a controller stick causes events to be fired.
  *
- * ## Why only keep axis values?
+ * Sometimes, the OS might send repeating "down" events when a gamepad button is held down.
+ * We use a cache of button states to filter such repeat events out.
  *
- * We actually don't need to remember button positions, because we get e.g. "A down" and "A up"
- * events that we can always trust for those. But a motion event doesn't tell us which sticks
- * or axes have changed, and this class handles that.
- *
- * The exception is the D-pad. If a KEYCODE_DPAD_LEFT key-down event comes in, we obey it.
+ * If a KEYCODE_DPAD_LEFT key-down event comes in, we obey it.
  * But some gamepads report D-pad inputs on the AXIS_HAT_X and AXIS_HAT_Y axes.
  * We treat HAT_X and HAT_Y as "axes that can also be steered by key events."
  */
 class GamepadState(val eventSink: EventChannel.EventSink, val deviceId: Int) {
     /** A map from axis numbers (e.g. MotionEvent.AXIS_HAT_X) to their floating-point readings. */
     private var axisValues = HashMap<Int, Float>()
+    private var buttonValues = HashMap<Button, Float>()
 
     private fun axisValue(axis: Int): Float {
         val value = axisValues[axis] ?: 0.0f
         axisValues[axis] = value
+        return value
+    }
+
+    private fun buttonValue(button: Button): Float {
+        val value = buttonValues[button] ?: 0.0f
+        buttonValues[button] = value
         return value
     }
 
@@ -120,7 +124,10 @@ class GamepadState(val eventSink: EventChannel.EventSink, val deviceId: Int) {
         if (button == Button.DpadUp) axisValues[MotionEvent.AXIS_HAT_Y] = -1.0f
         if (button == Button.DpadDown) axisValues[MotionEvent.AXIS_HAT_Y] = +1.0f
 
-        sendButtonEvent(button.ordinal, 1.0f)
+        if (buttonValue(button) != 1.0f) {
+            sendButtonEvent(button.ordinal, 1.0f)
+        }
+        buttonValues[button] = 1.0f
     }
 
     fun buttonUp(button: Button) {
@@ -128,7 +135,10 @@ class GamepadState(val eventSink: EventChannel.EventSink, val deviceId: Int) {
         if (button == Button.DpadLeft || button == Button.DpadRight) axisValues[MotionEvent.AXIS_HAT_X] = 0.0f
         if (button == Button.DpadUp || button == Button.DpadDown) axisValues[MotionEvent.AXIS_HAT_Y] = 0.0f
 
-        sendButtonEvent(button.ordinal, 0.0f)
+        if (buttonValue(button) != 0.0f) {
+            sendButtonEvent(button.ordinal, 0.0f)
+        }
+        buttonValues[button] = 0.0f
     }
 }
 
