@@ -1,11 +1,22 @@
 package com.example.flutter_gamepad
 
+import android.app.UiModeManager
+import android.content.Context
 import android.os.Build
+import android.util.Log
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import io.flutter.plugin.common.EventChannel
 import kotlin.math.absoluteValue
+import android.content.res.Configuration
+import android.os.Handler
+import com.example.flutter_gamepad.GamepadState
+import java.util.Date
+import java.util.*
+import kotlin.collections.HashMap
+import kotlin.concurrent.timer
+
 
 val KeyEvent.isFromGamepad: Boolean
     get() = (source and InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
@@ -33,11 +44,32 @@ const val AXIS_THRESHOLD: Float = 0.01f
  * If a KEYCODE_DPAD_LEFT key-down event comes in, we obey it.
  * But some gamepads report D-pad inputs on the AXIS_HAT_X and AXIS_HAT_Y axes.
  * We treat HAT_X and HAT_Y as "axes that can also be steered by key events."
+ *
+ * ---
+ *
+ * This class further contains a piece of Android TV specific behavior called the "BACK hack":
+ *
+ * On Android TV, SELECT events (as created by the "options/select/back" button on the gamepad)
+ * get "helpfully" transformed into BACK by some layer of the OS. Meanwhile, BACK
+ * is already triggered as the "fallback" key event of the B button, as defined here:
+ * https://android.googlesource.com/platform/frameworks/base/+/master/data/keyboards/Generic.kcm
+ *
+ * This means B button presses look like BUTTON_B + BACK occurring "simultaneously",
+ * and "options" button presses look like just BACK events (with a different scan-code).
+ *
+ * This class does its best to figure out whether a BACK event occurred as part of a B press,
+ * and should be ignored, or if it actually represents an "options" button press.
+ * Doing so, it undoes this "helpful" transformation: an Android TV app will see events as normal.
  */
 class GamepadState(val eventSink: EventChannel.EventSink, val deviceId: Int) {
     /** A map from axis numbers (e.g. MotionEvent.AXIS_HAT_X) to their floating-point readings. */
     private var axisValues = HashMap<Int, Float>()
     private var buttonValues = HashMap<Button, Float>()
+
+    /** A scanCode that we know to represent this gamepad's B button. */
+    var knownButtonBScanCode: Int? = null
+    private var backHackTimer: TimerTask? = null
+    private var lastButtonBEventTime: Date? = null
 
     private fun axisValue(axis: Int): Float {
         val value = axisValues[axis] ?: 0.0f
@@ -140,6 +172,47 @@ class GamepadState(val eventSink: EventChannel.EventSink, val deviceId: Int) {
         }
         buttonValues[button] = 0.0f
     }
+
+    fun processButtonAction(action: Int, button: Button) {
+        if (action == KeyEvent.ACTION_DOWN) {
+            buttonDown(button)
+        } else if (action == KeyEvent.ACTION_UP) {
+            buttonUp(button)
+        }
+    }
+
+    fun processButtonEvent(keyEvent: KeyEvent, button: Button) {
+        if (button == Button.B) {
+            knownButtonBScanCode = knownButtonBScanCode ?: keyEvent.scanCode
+            lastButtonBEventTime = Date()
+        }
+        processButtonAction(keyEvent.action, button)
+    }
+
+    fun investigateBackEvent(action: Int) {
+        // We got a BACK button press on Android TV, and we'd like to figure out
+        // if it occurred or is about to occur simultaneously with a B button press.
+
+        // We consider presses within this millisecond threshold to be "simultaneous":
+        val threshold = 50L
+
+        // We wait that long, and then check if B was pressed in the [now - threshold, now + threshold] interval.
+        backHackTimer?.cancel()
+        Handler().postDelayed({
+            val lastB = lastButtonBEventTime
+            if (lastB != null && lastB.time > Date().time - 2L * threshold) {
+                // OK, a B press happened simultaneously with this BACK press.
+                // That means the BACK is just the "fallback" part of the B press
+                // and we shouldn't pretend the options button was pressed.
+                // We do nothing at all.
+            } else {
+                // This BACK press is not from the B button.
+                // We deduce that Android TV must've turned SELECT into BACK here,
+                // and we trigger an "options" button press to undo this mapping.
+                processButtonAction(action, Button.Options)
+            }
+        }, threshold)
+    }
 }
 
 /**
@@ -174,24 +247,37 @@ class GamepadCache(val eventSink: EventChannel.EventSink) {
     }
 
     /**
-     * Process a "key down" Android event. Returns true if the event was handled successfully,
+     * Process an Android key event. Returns true if the event was handled successfully,
      * or false if it should be bubbled up.
      */
-    fun processKeyDownEvent(keyEvent: KeyEvent): Boolean {
+    fun processKeyEvent(keyEvent: KeyEvent): Boolean {
         if (!keyEvent.isFromGamepad) return false
-        val button = buttonMap[keyEvent.keyCode] ?: return false
-        gamepadState(keyEvent.deviceId).buttonDown(button)
-        return true
-    }
+        if (keyEvent.repeatCount > 1) return true
+        val button = buttonMap[keyEvent.keyCode]
+        val pad = gamepadState(keyEvent.deviceId)
 
-    /**
-     * Process a "key up" Android event. Returns true if the event was handled successfully,
-     * or false if it should be bubbled up.
-     */
-    fun processKeyUpEvent(keyEvent: KeyEvent): Boolean {
-        if (!keyEvent.isFromGamepad) return false
-        val button = buttonMap[keyEvent.keyCode] ?: return false
-        gamepadState(keyEvent.deviceId).buttonUp(button)
+        // Treat BACK keycodes specially on Android. See this class's documentation.
+        if (keyEvent.keyCode == KeyEvent.KEYCODE_BACK && FlutterGamepadPlugin.isTv == true) {
+            if (pad.knownButtonBScanCode == null) {
+                // If we don't yet know the B button scan-code, use a timer-based method
+                // to tell B presses and "options" presses apart.
+                pad.investigateBackEvent(keyEvent.action)
+            } else if (keyEvent.scanCode != pad.knownButtonBScanCode) {
+                // If we do know it, and this one isn't that, then it's "options" for sure.
+                pad.processButtonAction(keyEvent.action, Button.Options)
+            }
+        }
+
+        // If we don't recognize this as a gamepad button, it must be something like
+        // KEYCODE_DEL or KEYCODE_SELECT that gets sent as a "fallback" along with gamepad events.
+        // We intentionally silence these and trust the app to properly handle gamepad events.
+        // (By "silence", I mean "return `true` so they don't propagate and reach Flutter".)
+        if (button == null) {
+            return true
+        }
+
+        // Process a normal gamepad button and return true to say we processed it.
+        pad.processButtonEvent(keyEvent, button)
         return true
     }
 
