@@ -13,8 +13,15 @@ A platform library for listening to hardware gamepads (game controllers) from Fl
 
 ## Caveats
 
-* On Android, the B button seems to trigger a "back" action. You'll want to have a `WillPopScope` on your game scaffold to prevent this.
-* On Android, "disconnect" events are never fired. "Connect" events are fired initially when listening to the stream, and thereafter on the first input of any new gamepads. This differs from the iOS behavior, where a "connect" event is sent when the connection is established, even if no buttons have been pressed.
+### Android
+
+* "Disconnect" events are never fired on Android. "Connect" events are fired initially for already-connected gamepads when listening to the stream, and thereafter on the first input of any _new_ gamepads. This differs from the iOS behavior for non-inital "connect" events: on that platform, a "connect" event can arrive for a gamepad before any button has been pressed.
+* Gamepad button events are just a special kind of key event. This plugin currently patches the FlutterViewController to prevent key-events that originate from a gamepad from reaching the default Flutter handler for key events. This allows you to handle gamepad input all in one place and not getting duplicate key events in your keyboard handlers.
+
+  This has a notable consequence: normally, Android sends "SELECT" events along with "BUTTON_A" events that you might expect on the Flutter side to implement key-based focus navigation. This plugin silences those, so you'll have to listen to the FlutterGamepad event stream for A presses and make navigation work based off of those.
+
+* Despite all that, the B button still seems to trigger a "back" action in Flutter. You'll want to have a `WillPopScope` on your game scaffold to prevent this.
+* Android TV exhibits a weird behavior where it transforms presses of the "select" button (the leftmost small button on the face of the gamepad) into `KEYCODE_BACK` key events. (Normally they are `KEYCODE_BUTTON_SELECT`.) This plugin does some work to undo this transformation.
 
 ## Example
 

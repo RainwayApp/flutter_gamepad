@@ -1,5 +1,8 @@
 package com.example.flutter_gamepad
 
+import android.app.UiModeManager
+import android.content.Context
+import android.content.res.Configuration
 import android.view.KeyEvent
 import android.view.MotionEvent
 import io.flutter.embedding.android.AndroidKeyProcessor
@@ -32,14 +35,14 @@ class GamepadAndroidTouchProcessor(renderer: FlutterRenderer) : AndroidTouchProc
  */
 class GamepadAndroidKeyProcessor(keyEventChannel: KeyEventChannel, textInputPlugin: TextInputPlugin) : AndroidKeyProcessor(keyEventChannel, textInputPlugin) {
     override fun onKeyDown(keyEvent: KeyEvent) {
-        val handled = GamepadStreamHandler.processKeyDownEvent(keyEvent)
+        val handled = GamepadStreamHandler.processKeyEvent(keyEvent)
         if (!handled) {
             super.onKeyDown(keyEvent)
         }
     }
 
     override fun onKeyUp(keyEvent: KeyEvent) {
-        val handled = GamepadStreamHandler.processKeyUpEvent(keyEvent)
+        val handled = GamepadStreamHandler.processKeyEvent(keyEvent)
         if (!handled) {
             super.onKeyUp(keyEvent)
         }
@@ -51,13 +54,22 @@ class GamepadAndroidKeyProcessor(keyEventChannel: KeyEventChannel, textInputPlug
  */
 class FlutterGamepadPlugin : MethodCallHandler {
     companion object {
+        var isTv: Boolean? = null
+
         @JvmStatic
         fun registerWith(registrar: Registrar) {
+            // Detect if we are running on a TV.
+            val context = registrar.context()
+            val manager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+            isTv = manager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
+
+            // Set up Flutter platform channels.
             val methodChannel = MethodChannel(registrar.messenger(), "com.rainway.flutter_gamepad/methods")
             methodChannel.setMethodCallHandler(FlutterGamepadPlugin())
             val eventChannel = EventChannel(registrar.messenger(), "com.rainway.flutter_gamepad/events")
             eventChannel.setStreamHandler(GamepadStreamHandler)
 
+            // Patch the FlutterView's touch and keypress processors:
             val view: FlutterView = registrar.view()
             fun viewField(name: String): Field {
                 val field = FlutterView::class.java.getDeclaredField(name)
