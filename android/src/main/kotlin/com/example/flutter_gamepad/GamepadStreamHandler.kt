@@ -11,7 +11,7 @@ val InputDevice.isGamepad: Boolean
     get() = sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD
 
 val InputEvent.deviceIsGamepad: Boolean
-    get() = InputDevice.getDevice(deviceId).isGamepad
+    get() = InputDevice.getDevice(deviceId)?.isGamepad ?: false
 
 /**
  * A singleton object that manages the gamepad event stream. It is fed Android events and
