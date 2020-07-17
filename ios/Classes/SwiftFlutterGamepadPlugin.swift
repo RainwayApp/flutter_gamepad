@@ -1,5 +1,9 @@
+#if os(iOS) || os(tvOS)
 import Flutter
 import UIKit
+#else // os(macOS)
+import FlutterMacOS
+#endif
 import GameController
 
 enum Button : Int {
@@ -41,7 +45,7 @@ enum Thumbstick : Int {
     result["isAttachedToDevice"] = try? gamepadIsAttachedToDevice(gamepad: gamepad) as Any;
     // result["playerIndex"] = gamepad.controller?.playerIndex.rawValue as Any;
     result["vendorName"] = gamepad.controller?.vendorName as Any;
-    if #available(iOS 13.0, tvOS 13.0, *) {
+    if #available(iOS 13.0, tvOS 13.0, OSX 10.15, *) {
       result["productCategory"] = gamepad.controller?.productCategory as Any;
       // result["isSnapshot"] = gamepad.controller?.isSnapshot as Any;
     }
@@ -115,7 +119,7 @@ enum Thumbstick : Int {
     gamepad.buttonB.valueChangedHandler = buttonHandler(.b)
     gamepad.buttonX.valueChangedHandler = buttonHandler(.x)
     gamepad.buttonY.valueChangedHandler = buttonHandler(.y)
-    if #available(iOS 13.0, tvOS 13.0, *) {
+    if #available(iOS 13.0, tvOS 13.0, OSX 10.15, *) {
       gamepad.buttonOptions?.valueChangedHandler = buttonHandler(.options)
       gamepad.buttonMenu.valueChangedHandler = buttonHandler(.menu)
     } else {
@@ -133,7 +137,7 @@ enum Thumbstick : Int {
 
     gamepad.dpad.left.valueChangedHandler = buttonHandler(.dpadLeft)
     gamepad.dpad.right.valueChangedHandler = buttonHandler(.dpadRight)
-    if #available(iOS 12.1, tvOS 12.1, *) {
+    if #available(iOS 12.1, tvOS 12.1, OSX 10.14.1, *) {
       gamepad.leftThumbstickButton?.valueChangedHandler = buttonHandler(.leftThumbstickButton)
       gamepad.rightThumbstickButton?.valueChangedHandler = buttonHandler(.rightThumbstickButton)
     }
@@ -153,11 +157,19 @@ public class SwiftFlutterGamepadPlugin: NSObject, FlutterPlugin {
   var gamepadStreamHandler: GamepadStreamHandler = GamepadStreamHandler()
 
   public static func register(with registrar: FlutterPluginRegistrar) {
+#if os(iOS) || os(tvOS)
     let channel = FlutterMethodChannel(name: "com.rainway.flutter_gamepad/methods", binaryMessenger: registrar.messenger())
+#else
+    let channel = FlutterMethodChannel(name: "com.rainway.flutter_gamepad/methods", binaryMessenger: registrar.messenger)
+#endif
     let instance = SwiftFlutterGamepadPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
 
+#if os(iOS) || os(tvOS)
     let eventChannel = FlutterEventChannel(name: "com.rainway.flutter_gamepad/events", binaryMessenger: registrar.messenger())
+#else
+    let eventChannel = FlutterEventChannel(name: "com.rainway.flutter_gamepad/events", binaryMessenger: registrar.messenger)
+#endif
     eventChannel.setStreamHandler(instance.gamepadStreamHandler)
   }
 
