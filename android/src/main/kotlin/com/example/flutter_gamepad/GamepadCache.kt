@@ -256,15 +256,20 @@ class GamepadCache(val eventSink: EventChannel.EventSink) {
         val button = buttonMap[keyEvent.keyCode]
         val pad = gamepadState(keyEvent.deviceId)
 
-        // Treat BACK keycodes specially on Android. See this class's documentation.
-        if (keyEvent.keyCode == KeyEvent.KEYCODE_BACK && FlutterGamepadPlugin.isTv == true) {
-            if (pad.knownButtonBScanCode == null) {
-                // If we don't yet know the B button scan-code, use a timer-based method
-                // to tell B presses and "options" presses apart.
-                pad.investigateBackEvent(keyEvent.action)
-            } else if (keyEvent.scanCode != pad.knownButtonBScanCode) {
-                // If we do know it, and this one isn't that, then it's "options" for sure.
-                pad.processButtonAction(keyEvent.action, Button.Options)
+        if (FlutterGamepadPlugin.isTv == true) {
+            // Treat BACK keycodes specially on Android TV. See this class's documentation.
+            if (keyEvent.keyCode == KeyEvent.KEYCODE_BACK) {
+                if (pad.knownButtonBScanCode == null) {
+                    // If we don't yet know the B button scan-code, use a timer-based method
+                    // to tell B presses and "options" presses apart.
+                    pad.investigateBackEvent(keyEvent.action)
+                } else if (keyEvent.scanCode != pad.knownButtonBScanCode) {
+                    // If we do know it, and this one isn't that, then it's "options" for sure.
+                    pad.processButtonAction(keyEvent.action, Button.Options)
+                }
+            } else if (keyEvent.keyCode == KeyEvent.KEYCODE_MENU) {
+                // On Fire TV the Start button triggers a KEYCODE_MENU.
+                pad.processButtonAction(keyEvent.action, Button.Menu)
             }
         }
 
