@@ -43,4 +43,8 @@ object GamepadStreamHandler : EventChannel.StreamHandler {
         Log.d("GSH", "$event")
         return event.deviceIsGamepad && gamepadCache?.processKeyEvent(event) ?: false
     }
+
+    fun enableDebugMode(flag: Boolean) {
+        gamepadCache?.enableDebugMode(flag)
+    }
 }

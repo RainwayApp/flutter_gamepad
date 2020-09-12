@@ -98,6 +98,10 @@ class FlutterGamepadPlugin : MethodCallHandler {
     override fun onMethodCall(call: MethodCall, result: Result) {
         if (call.method == "gamepads") {
             result.success(allGamepadInfoDictionaries())
+        } else if (call.method == "enableDebugMode") {
+            GamepadStreamHandler.enableDebugMode(true)
+        } else if (call.method == "disableDebugMode") {
+            GamepadStreamHandler.enableDebugMode(false)
         } else {
             result.notImplemented()
         }

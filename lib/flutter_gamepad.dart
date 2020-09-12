@@ -61,4 +61,12 @@ class FlutterGamepad {
     final result = await _methodChannel.invokeListMethod<dynamic>('gamepads');
     return result.map((x) => GamepadInfo.decode(x)).toList();
   }
+
+  static void enableDebugMode() {
+    _methodChannel.invokeListMethod<dynamic>('enableDebugMode');
+  }
+
+  static void disableDebugMode() {
+    _methodChannel.invokeListMethod<dynamic>('disableDebugMode');
+  }
 }

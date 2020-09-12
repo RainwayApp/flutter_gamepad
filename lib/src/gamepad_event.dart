@@ -81,6 +81,11 @@ abstract class GamepadEvent {
         x: message['x'],
         y: message['y'],
       );
+    } else if (message['event'] == 'buttonDebugEvent') {
+      return GamepadButtonDebugEvent(
+        gamepadId: message['gamepadId'],
+        info: message['info'],
+      );
     } else {
       throw ArgumentError("Unknown flutter_gamepad event ${message['event']}");
     }
@@ -161,5 +166,18 @@ class GamepadThumbstickEvent implements GamepadEvent {
     @required this.thumbstick,
     @required this.x,
     @required this.y,
+  });
+}
+
+/// A gamepad debug event (emitted only when debug mode enabled).
+class GamepadButtonDebugEvent implements GamepadEvent {
+  /// A number uniquely identifying the gamepad this button state change pertains to.
+  final int gamepadId;
+
+  final String info;
+
+  const GamepadButtonDebugEvent({
+    @required this.gamepadId,
+    @required this.info,
   });
 }
