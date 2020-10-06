@@ -23,7 +23,7 @@ import java.lang.reflect.Field
  * An extension of Flutter's AndroidTouchProcessor that delegates MotionEvents to the GamepadStreamHandler.
  * (On Android, thumbstick events from a gamepad are a kind of MotionEvent.)
  */
-class GamepadAndroidTouchProcessor(renderer: FlutterRenderer) : AndroidTouchProcessor(renderer) {
+class GamepadAndroidTouchProcessor(renderer: FlutterRenderer) : AndroidTouchProcessor(renderer, true) {
     override fun onGenericMotionEvent(event: MotionEvent): Boolean {
         return GamepadStreamHandler.processMotionEvent(event) || super.onGenericMotionEvent(event)
     }
