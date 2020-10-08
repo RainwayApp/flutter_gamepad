@@ -33,16 +33,21 @@ enum Thumbstick : Int {
   // In practice, `isAttachedToDevice` sometimes throws for some godforsaken internal reason (array index out of bounds),
   // but it isn't marked `throws`, so `try?` will cause a warning. This wrapper *is* marked `throws`, to remedy this.
   private func gamepadIsAttachedToDevice(gamepad: GCExtendedGamepad) throws -> Bool? {
-    return gamepad.controller?.isAttachedToDevice
+    if #available(iOS 14, tvOS 14, *) {
+      // return gamepad.controller?.isAttachedToDevice
+    } else {
+      return false
+    }
+    return false
   }
 
   private func gamepadInfoDictionary(gamepad: GCExtendedGamepad) -> [String: Any] {
     var result: [String: Any] = [:];
     result["isAttachedToDevice"] = try? gamepadIsAttachedToDevice(gamepad: gamepad) as Any;
     // result["playerIndex"] = gamepad.controller?.playerIndex.rawValue as Any;
-    result["vendorName"] = gamepad.controller?.vendorName as Any;
-    if #available(iOS 13.0, tvOS 13.0, *) {
-      result["productCategory"] = gamepad.controller?.productCategory as Any;
+    if #available(iOS 14.0, tvOS 14.0, *) {
+      // result["vendorName"] = gamepad.controller?.vendorName as Any;
+      // result["productCategory"] = gamepad.controller?.productCategory as Any;
       // result["isSnapshot"] = gamepad.controller?.isSnapshot as Any;
     }
     result["id"] = gamepad.hash;
@@ -67,11 +72,16 @@ enum Thumbstick : Int {
         print("GCControllerDidConnect: non-controller object?")
         return
       }
+
       guard let eg = gc.extendedGamepad else {
-        print("GCControllerDidConnect: Ignoring non-extendedGamepad controller; vendorName is \(String(describing: gc.vendorName)).")
+        if #available(iOS 14.0, tvOS 14.0, *) {
+          print("GCControllerDidConnect: Ignoring non-extendedGamepad controller; vendorName is \(String(describing: gc.vendorName)).")
+        }
         return
       }
-      print("GCControllerDidConnect: Adding extendedGamepad with vendorName \(String(describing: gc.vendorName)).")
+      if #available(iOS 14.0, tvOS 14.0, *) {
+        print("GCControllerDidConnect: Adding extendedGamepad with vendorName \(String(describing: gc.vendorName)).")
+      }
       self.gamepadConnected(gamepad: eg)
     }
 
@@ -81,10 +91,14 @@ enum Thumbstick : Int {
         return
       }
       guard let eg = gc.extendedGamepad else {
-        print("GCControllerDidDisconnect: Ignoring non-extendedGamepad controller; vendorName is \(String(describing: gc.vendorName)).")
+        if #available(iOS 14.0, tvOS 14.0, *) {
+          print("GCControllerDidDisconnect: Ignoring non-extendedGamepad controller; vendorName is \(String(describing: gc.vendorName)).")
+        }
         return
       }
-      print("GCControllerDidDisconnect: Removing extendedGamepad with vendorName \(String(describing: gc.vendorName)).")
+      if #available(iOS 14.0, tvOS 14.0, *) {
+        print("GCControllerDidDisconnect: Removing extendedGamepad with vendorName \(String(describing: gc.vendorName)).")
+      }
       self.gamepadDisconnected(gamepad: eg)
     }
 
@@ -115,14 +129,9 @@ enum Thumbstick : Int {
     gamepad.buttonB.valueChangedHandler = buttonHandler(.b)
     gamepad.buttonX.valueChangedHandler = buttonHandler(.x)
     gamepad.buttonY.valueChangedHandler = buttonHandler(.y)
-    if #available(iOS 13.0, tvOS 13.0, *) {
+    if #available(iOS 14.0, tvOS 14.0, *) {
       gamepad.buttonOptions?.valueChangedHandler = buttonHandler(.options)
       gamepad.buttonMenu.valueChangedHandler = buttonHandler(.menu)
-    } else {
-      gamepad.controller?.controllerPausedHandler = { (_) in
-        eventSink(["event": "button", "gamepadId": gamepad.hash, "button": Button.menu.rawValue, "value": 1.0])
-        eventSink(["event": "button", "gamepadId": gamepad.hash, "button": Button.menu.rawValue, "value": 0.0])
-      }
     }
     gamepad.leftShoulder.valueChangedHandler = buttonHandler(.leftShoulder)
     gamepad.leftTrigger.valueChangedHandler = buttonHandler(.leftTrigger)

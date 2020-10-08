@@ -14,9 +14,11 @@ A new flutter plugin project.
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
-  s.dependency 'Flutter'
+  s.ios.dependency 'Flutter'
+  s.tvos.dependency 'Flutter-tvos'
 
   s.ios.deployment_target = '8.0'
+  s.tvos.deployment_target = '9.0'
   s.tvos.deployment_target = '9.0'
 end
 
