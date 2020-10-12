@@ -45,9 +45,12 @@ class GamepadAndroidKeyProcessor(flutterView: FlutterView, keyEventChannel: KeyE
         if (!handled) {
             return super.onKeyDown(keyEvent)
         }
-        // In the old version of this processor the onKeyDown function did not return a value, which was a problem
-        // that had to be worked around at the app level. The natural thing to do is return handled here, but
-        // doing that will break apps that have work arounds for this problem.
+        // In the old version of this processor the onKeyUp function did not return a value, which meant that
+        // the system would handle these events in addition to the plugin, which resuled in extra events being
+        // generated for button presses (for example the B button triggered a BACK event in addition to the
+        // normal B button press event). This was a problem that had to be worked around at the app level.
+        // The natural thing to do is return handled here, but doing that will break apps that have work a
+        // around for this "extra events" problem.
         return if (this.mode == Mode.backwardsCompatibility) {
             false
         } else {
@@ -60,9 +63,12 @@ class GamepadAndroidKeyProcessor(flutterView: FlutterView, keyEventChannel: KeyE
         if (!handled) {
             return super.onKeyUp(keyEvent)
         }
-        // In the old version of this processor the onKeyUp function did not return a value, which was a problem
-        // that had to be worked around at the app level. The natural thing to do is return handled here, but
-        // doing that will break apps that have work arounds for this problem.
+        // In the old version of this processor the onKeyUp function did not return a value, which meant that
+        // the system would handle these events in addition to the plugin, which resuled in extra events being
+        // generated for button presses (for example the B button triggered a BACK event in addition to the
+        // normal B button press event). This was a problem that had to be worked around at the app level.
+        // The natural thing to do is return handled here, but doing that will break apps that have work a
+        // around for this "extra events" problem.
         return if (this.mode == Mode.backwardsCompatibility) {
             false
         } else {

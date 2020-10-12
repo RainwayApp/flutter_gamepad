@@ -62,6 +62,11 @@ class FlutterGamepad {
     return result.map((x) => GamepadInfo.decode(x)).toList();
   }
 
+  /// Older versions of FlutterGamepad would generate "extra" events
+  /// in addition to the gamepad events (for example pressing the B-button
+  /// would also generate a BACK event). This newer version of the plugin
+  /// does not have that issue, but for apps that require this, use this
+  /// function to restore that "extra event" behavior.
   static void enableAndroidBackwardsCompatibilityMode() {
     _methodChannel.invokeListMethod<dynamic>('enableAndroidBackwardsCompatibilityMode');
   }
