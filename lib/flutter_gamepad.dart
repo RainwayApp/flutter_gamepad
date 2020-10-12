@@ -62,6 +62,14 @@ class FlutterGamepad {
     return result.map((x) => GamepadInfo.decode(x)).toList();
   }
 
+  static void enableAndroidBackwardsCompatibilityMode() {
+    _methodChannel.invokeListMethod<dynamic>('enableAndroidBackwardsCompatibilityMode');
+  }
+
+  static void disableAndroidBackwardsCompatibilityMode() {
+    _methodChannel.invokeListMethod<dynamic>('disableAndroidBackwardsCompatibilityMode');
+  }
+
   static void enableDebugMode() {
     _methodChannel.invokeListMethod<dynamic>('enableDebugMode');
   }

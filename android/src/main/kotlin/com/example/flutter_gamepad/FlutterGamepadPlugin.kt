@@ -29,22 +29,44 @@ class GamepadAndroidTouchProcessor(renderer: FlutterRenderer) : AndroidTouchProc
     }
 }
 
+
 /**
  * An extension of Flutter's AndroidKeyProcessor that delegates KeyEvents to the GamepadStreamHandler.
  * (On Android, button events from a gamepad are a kind of KeyEvent.)
  */
-class GamepadAndroidKeyProcessor(keyEventChannel: KeyEventChannel, textInputPlugin: TextInputPlugin) : AndroidKeyProcessor(keyEventChannel, textInputPlugin) {
-    override fun onKeyDown(keyEvent: KeyEvent) {
+class GamepadAndroidKeyProcessor(flutterView: FlutterView, keyEventChannel: KeyEventChannel, textInputPlugin: TextInputPlugin) : AndroidKeyProcessor(flutterView, keyEventChannel, textInputPlugin) {
+    enum class Mode {
+        normal,
+        backwardsCompatibility,
+    }
+    var mode: Mode = Mode.normal
+    override fun onKeyDown(keyEvent: KeyEvent): Boolean {
         val handled = GamepadStreamHandler.processKeyEvent(keyEvent)
         if (!handled) {
-            super.onKeyDown(keyEvent)
+            return super.onKeyDown(keyEvent)
+        }
+        // In the old version of this processor the onKeyDown function did not return a value, which was a problem
+        // that had to be worked around at the app level. The natural thing to do is return handled here, but
+        // doing that will break apps that have work arounds for this problem.
+        return if (this.mode == Mode.backwardsCompatibility) {
+            false
+        } else {
+            handled;
         }
     }
 
-    override fun onKeyUp(keyEvent: KeyEvent) {
+    override fun onKeyUp(keyEvent: KeyEvent): Boolean {
         val handled = GamepadStreamHandler.processKeyEvent(keyEvent)
         if (!handled) {
-            super.onKeyUp(keyEvent)
+            return super.onKeyUp(keyEvent)
+        }
+        // In the old version of this processor the onKeyUp function did not return a value, which was a problem
+        // that had to be worked around at the app level. The natural thing to do is return handled here, but
+        // doing that will break apps that have work arounds for this problem.
+        return if (this.mode == Mode.backwardsCompatibility) {
+            false
+        } else {
+            handled;
         }
     }
 }
@@ -55,6 +77,7 @@ class GamepadAndroidKeyProcessor(keyEventChannel: KeyEventChannel, textInputPlug
 class FlutterGamepadPlugin : MethodCallHandler {
     companion object {
         var isTv: Boolean? = null
+        var gamepadAndroidKeyProcessor: GamepadAndroidKeyProcessor? = null
 
         @JvmStatic
         fun registerWith(registrar: Registrar) {
@@ -90,14 +113,18 @@ class FlutterGamepadPlugin : MethodCallHandler {
             val textInputPluginField = viewField("mTextInputPlugin")
             val keyEventChannel = keyEventChannelField.get(view) as KeyEventChannel
             val textInputPlugin = textInputPluginField.get(view) as TextInputPlugin
-            val keyProcessor = GamepadAndroidKeyProcessor(keyEventChannel, textInputPlugin)
-            keyProcessorField.set(view, keyProcessor)
+            gamepadAndroidKeyProcessor = GamepadAndroidKeyProcessor(view, keyEventChannel, textInputPlugin)
+            keyProcessorField.set(view, gamepadAndroidKeyProcessor)
         }
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
         if (call.method == "gamepads") {
             result.success(allGamepadInfoDictionaries())
+        } else if (call.method == "enableAndroidBackwardsCompatibilityMode") {
+            gamepadAndroidKeyProcessor?.mode = GamepadAndroidKeyProcessor.Mode.backwardsCompatibility
+        } else if (call.method == "disableAndroidBackwardsCompatibilityMode") {
+            gamepadAndroidKeyProcessor?.mode = GamepadAndroidKeyProcessor.Mode.normal
         } else if (call.method == "enableDebugMode") {
             GamepadStreamHandler.enableDebugMode(true)
         } else if (call.method == "disableDebugMode") {
