@@ -35,27 +35,12 @@ class GamepadAndroidTouchProcessor(renderer: FlutterRenderer) : AndroidTouchProc
  * (On Android, button events from a gamepad are a kind of KeyEvent.)
  */
 class GamepadAndroidKeyProcessor(flutterView: FlutterView, keyEventChannel: KeyEventChannel, textInputPlugin: TextInputPlugin) : AndroidKeyProcessor(flutterView, keyEventChannel, textInputPlugin) {
-    enum class Mode {
-        normal,
-        backwardsCompatibility,
-    }
-    var mode: Mode = Mode.normal
     override fun onKeyDown(keyEvent: KeyEvent): Boolean {
         val handled = GamepadStreamHandler.processKeyEvent(keyEvent)
         if (!handled) {
             return super.onKeyDown(keyEvent)
         }
-        // In the old version of this processor the onKeyUp function did not return a value, which meant that
-        // the system would handle these events in addition to the plugin, which resuled in extra events being
-        // generated for button presses (for example the B button triggered a BACK event in addition to the
-        // normal B button press event). This was a problem that had to be worked around at the app level.
-        // The natural thing to do is return handled here, but doing that will break apps that have work a
-        // around for this "extra events" problem.
-        return if (this.mode == Mode.backwardsCompatibility) {
-            false
-        } else {
-            handled;
-        }
+        return handled;
     }
 
     override fun onKeyUp(keyEvent: KeyEvent): Boolean {
@@ -63,17 +48,7 @@ class GamepadAndroidKeyProcessor(flutterView: FlutterView, keyEventChannel: KeyE
         if (!handled) {
             return super.onKeyUp(keyEvent)
         }
-        // In the old version of this processor the onKeyUp function did not return a value, which meant that
-        // the system would handle these events in addition to the plugin, which resuled in extra events being
-        // generated for button presses (for example the B button triggered a BACK event in addition to the
-        // normal B button press event). This was a problem that had to be worked around at the app level.
-        // The natural thing to do is return handled here, but doing that will break apps that have work a
-        // around for this "extra events" problem.
-        return if (this.mode == Mode.backwardsCompatibility) {
-            false
-        } else {
-            handled;
-        }
+        return handled;
     }
 }
 
@@ -127,10 +102,6 @@ class FlutterGamepadPlugin : MethodCallHandler {
     override fun onMethodCall(call: MethodCall, result: Result) {
         if (call.method == "gamepads") {
             result.success(allGamepadInfoDictionaries())
-        } else if (call.method == "enableAndroidBackwardsCompatibilityMode") {
-            gamepadAndroidKeyProcessor?.mode = GamepadAndroidKeyProcessor.Mode.backwardsCompatibility
-        } else if (call.method == "disableAndroidBackwardsCompatibilityMode") {
-            gamepadAndroidKeyProcessor?.mode = GamepadAndroidKeyProcessor.Mode.normal
         } else if (call.method == "enableDebugMode") {
             GamepadStreamHandler.enableDebugMode(true)
         } else if (call.method == "disableDebugMode") {
