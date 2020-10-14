@@ -58,7 +58,6 @@ class GamepadAndroidKeyProcessor(flutterView: FlutterView, keyEventChannel: KeyE
 class FlutterGamepadPlugin : MethodCallHandler {
     companion object {
         var isTv: Boolean? = null
-        var gamepadAndroidKeyProcessor: GamepadAndroidKeyProcessor? = null
 
         @JvmStatic
         fun registerWith(registrar: Registrar) {
@@ -94,8 +93,8 @@ class FlutterGamepadPlugin : MethodCallHandler {
             val textInputPluginField = viewField("mTextInputPlugin")
             val keyEventChannel = keyEventChannelField.get(view) as KeyEventChannel
             val textInputPlugin = textInputPluginField.get(view) as TextInputPlugin
-            gamepadAndroidKeyProcessor = GamepadAndroidKeyProcessor(view, keyEventChannel, textInputPlugin)
-            keyProcessorField.set(view, gamepadAndroidKeyProcessor)
+            val keyProcessor = GamepadAndroidKeyProcessor(view, keyEventChannel, textInputPlugin)
+            keyProcessorField.set(view, keyProcessor)
         }
     }
 
