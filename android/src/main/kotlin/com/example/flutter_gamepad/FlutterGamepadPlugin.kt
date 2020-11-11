@@ -72,7 +72,7 @@ class FlutterGamepadPlugin : MethodCallHandler {
             eventChannel.setStreamHandler(GamepadStreamHandler)
 
             // Patch the FlutterView's touch and keypress processors:
-            val view: FlutterView = registrar.view()
+            /*val view: FlutterView = registrar.view()
             fun viewField(name: String): Field {
                 val field = FlutterView::class.java.getDeclaredField(name)
                 field.isAccessible = true
@@ -93,7 +93,7 @@ class FlutterGamepadPlugin : MethodCallHandler {
             val keyEventChannel = keyEventChannelField.get(view) as KeyEventChannel
             val textInputPlugin = textInputPluginField.get(view) as TextInputPlugin
             val keyProcessor = GamepadAndroidKeyProcessor(view, keyEventChannel, textInputPlugin)
-            keyProcessorField.set(view, keyProcessor)
+            keyProcessorField.set(view, keyProcessor)*/
         }
     }
 
