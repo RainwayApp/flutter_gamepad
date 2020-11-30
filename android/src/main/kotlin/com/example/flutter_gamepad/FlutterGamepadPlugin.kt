@@ -23,7 +23,7 @@ import java.lang.reflect.Field
  * An extension of Flutter's AndroidTouchProcessor that delegates MotionEvents to the GamepadStreamHandler.
  * (On Android, thumbstick events from a gamepad are a kind of MotionEvent.)
  */
-class GamepadAndroidTouchProcessor(renderer: FlutterRenderer) : AndroidTouchProcessor(renderer) {
+class GamepadAndroidTouchProcessor(renderer: FlutterRenderer) : AndroidTouchProcessor(renderer, true) {
     override fun onGenericMotionEvent(event: MotionEvent): Boolean {
         return GamepadStreamHandler.processMotionEvent(event) || super.onGenericMotionEvent(event)
     }
@@ -33,19 +33,21 @@ class GamepadAndroidTouchProcessor(renderer: FlutterRenderer) : AndroidTouchProc
  * An extension of Flutter's AndroidKeyProcessor that delegates KeyEvents to the GamepadStreamHandler.
  * (On Android, button events from a gamepad are a kind of KeyEvent.)
  */
-class GamepadAndroidKeyProcessor(keyEventChannel: KeyEventChannel, textInputPlugin: TextInputPlugin) : AndroidKeyProcessor(keyEventChannel, textInputPlugin) {
-    override fun onKeyDown(keyEvent: KeyEvent) {
+class GamepadAndroidKeyProcessor(flutterView: FlutterView, keyEventChannel: KeyEventChannel, textInputPlugin: TextInputPlugin) : AndroidKeyProcessor(flutterView, keyEventChannel, textInputPlugin) {
+    override fun onKeyDown(keyEvent: KeyEvent): Boolean {
         val handled = GamepadStreamHandler.processKeyEvent(keyEvent)
         if (!handled) {
-            super.onKeyDown(keyEvent)
+            return super.onKeyDown(keyEvent)
         }
+        return handled;
     }
 
-    override fun onKeyUp(keyEvent: KeyEvent) {
+    override fun onKeyUp(keyEvent: KeyEvent): Boolean {
         val handled = GamepadStreamHandler.processKeyEvent(keyEvent)
         if (!handled) {
-            super.onKeyUp(keyEvent)
+            return super.onKeyUp(keyEvent)
         }
+        return handled;
     }
 }
 
@@ -90,7 +92,7 @@ class FlutterGamepadPlugin : MethodCallHandler {
             val textInputPluginField = viewField("mTextInputPlugin")
             val keyEventChannel = keyEventChannelField.get(view) as KeyEventChannel
             val textInputPlugin = textInputPluginField.get(view) as TextInputPlugin
-            val keyProcessor = GamepadAndroidKeyProcessor(keyEventChannel, textInputPlugin)
+            val keyProcessor = GamepadAndroidKeyProcessor(view, keyEventChannel, textInputPlugin)
             keyProcessorField.set(view, keyProcessor)
         }
     }
@@ -98,6 +100,10 @@ class FlutterGamepadPlugin : MethodCallHandler {
     override fun onMethodCall(call: MethodCall, result: Result) {
         if (call.method == "gamepads") {
             result.success(allGamepadInfoDictionaries())
+        } else if (call.method == "enableDebugMode") {
+            GamepadStreamHandler.enableDebugMode(true)
+        } else if (call.method == "disableDebugMode") {
+            GamepadStreamHandler.enableDebugMode(false)
         } else {
             result.notImplemented()
         }

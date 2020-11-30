@@ -71,6 +71,8 @@ class GamepadState(val eventSink: EventChannel.EventSink, val deviceId: Int) {
     private var backHackTimer: TimerTask? = null
     private var lastButtonBEventTime: Date? = null
 
+    var needsSpecialBackButtonTreatment: Boolean = false
+
     private fun axisValue(axis: Int): Float {
         val value = axisValues[axis] ?: 0.0f
         axisValues[axis] = value
@@ -90,8 +92,11 @@ class GamepadState(val eventSink: EventChannel.EventSink, val deviceId: Int) {
      * event for a new controller is seen.
      */
     init {
-        sendEvent("event" to "gamepadConnected",
-                "gamepadInfo" to gamepadInfoDictionary(InputDevice.getDevice(deviceId)))
+        val gamepadInfo = gamepadInfoDictionary(InputDevice.getDevice(deviceId))
+        sendEvent("event" to "gamepadConnected", "gamepadInfo" to gamepadInfo)
+        // The XBox Elite controller seems to act like a TV even when it is not connected to a TV, in
+        // that it's Options button only generates KEYCODE_BACK events.
+        needsSpecialBackButtonTreatment = (gamepadInfo["vendorName"] == "Xbox Elite Wireless Controller")
     }
 
     private fun sendEvent(vararg pairs: Pair<String, Any>) {
@@ -213,6 +218,10 @@ class GamepadState(val eventSink: EventChannel.EventSink, val deviceId: Int) {
             }
         }, threshold)
     }
+
+    fun sendDebugEvent(eventType: String, vararg pairs: Pair<String, Any>) {
+        sendEvent("event" to eventType, *pairs)
+    }
 }
 
 /**
@@ -221,6 +230,7 @@ class GamepadState(val eventSink: EventChannel.EventSink, val deviceId: Int) {
  */
 class GamepadCache(val eventSink: EventChannel.EventSink) {
     val gamepadStates = HashMap<Int, GamepadState>()
+    var debugMode = false
 
     private fun gamepadState(deviceId: Int): GamepadState {
         val state = gamepadStates[deviceId] ?: GamepadState(eventSink, deviceId)
@@ -256,15 +266,20 @@ class GamepadCache(val eventSink: EventChannel.EventSink) {
         val button = buttonMap[keyEvent.keyCode]
         val pad = gamepadState(keyEvent.deviceId)
 
-        // Treat BACK keycodes specially on Android. See this class's documentation.
-        if (keyEvent.keyCode == KeyEvent.KEYCODE_BACK && FlutterGamepadPlugin.isTv == true) {
-            if (pad.knownButtonBScanCode == null) {
-                // If we don't yet know the B button scan-code, use a timer-based method
-                // to tell B presses and "options" presses apart.
-                pad.investigateBackEvent(keyEvent.action)
-            } else if (keyEvent.scanCode != pad.knownButtonBScanCode) {
-                // If we do know it, and this one isn't that, then it's "options" for sure.
-                pad.processButtonAction(keyEvent.action, Button.Options)
+        if (FlutterGamepadPlugin.isTv == true || pad.needsSpecialBackButtonTreatment) {
+            // Treat BACK keycodes specially on Android TV and for certain gamepads. See this class's documentation.
+            if (keyEvent.keyCode == KeyEvent.KEYCODE_BACK) {
+                if (pad.knownButtonBScanCode == null) {
+                    // If we don't yet know the B button scan-code, use a timer-based method
+                    // to tell B presses and "options" presses apart.
+                    pad.investigateBackEvent(keyEvent.action)
+                } else if (keyEvent.scanCode != pad.knownButtonBScanCode) {
+                    // If we do know it, and this one isn't that, then it's "options" for sure.
+                    pad.processButtonAction(keyEvent.action, Button.Options)
+                }
+            } else if (keyEvent.keyCode == KeyEvent.KEYCODE_MENU) {
+                // On Fire TV the Start button triggers a KEYCODE_MENU.
+                pad.processButtonAction(keyEvent.action, Button.Menu)
             }
         }
 
@@ -273,6 +288,9 @@ class GamepadCache(val eventSink: EventChannel.EventSink) {
         // We intentionally silence these and trust the app to properly handle gamepad events.
         // (By "silence", I mean "return `true` so they don't propagate and reach Flutter".)
         if (button == null) {
+            if (debugMode) {
+                pad.sendDebugEvent("buttonDebugEvent", "info" to keyEvent.toString())
+            }
             return true
         }
 
@@ -287,5 +305,9 @@ class GamepadCache(val eventSink: EventChannel.EventSink) {
      */
     fun touchGamepad(deviceId: Int) {
         gamepadState(deviceId)
+    }
+
+    fun enableDebugMode(flag: Boolean) {
+        debugMode = flag
     }
 }
