@@ -34,18 +34,10 @@ class GamepadAndroidTouchProcessor(renderer: FlutterRenderer) : AndroidTouchProc
  * (On Android, button events from a gamepad are a kind of KeyEvent.)
  */
 class GamepadAndroidKeyProcessor(flutterView: FlutterView, keyEventChannel: KeyEventChannel, textInputPlugin: TextInputPlugin) : AndroidKeyProcessor(flutterView, keyEventChannel, textInputPlugin) {
-    override fun onKeyDown(keyEvent: KeyEvent): Boolean {
+    override fun onKeyEvent(keyEvent: KeyEvent): Boolean {
         val handled = GamepadStreamHandler.processKeyEvent(keyEvent)
         if (!handled) {
-            return super.onKeyDown(keyEvent)
-        }
-        return handled;
-    }
-
-    override fun onKeyUp(keyEvent: KeyEvent): Boolean {
-        val handled = GamepadStreamHandler.processKeyEvent(keyEvent)
-        if (!handled) {
-            return super.onKeyUp(keyEvent)
+            return super.onKeyEvent(keyEvent)
         }
         return handled;
     }

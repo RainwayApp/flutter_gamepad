@@ -1,22 +1,23 @@
 PODS:
-  - Flutter (1.0.0)
+  - Flutter (2.0.0)
   - flutter_gamepad (0.0.1):
     - Flutter
 
 DEPENDENCIES:
-  - Flutter (from `.symlinks/flutter/ios`)
   - flutter_gamepad (from `.symlinks/plugins/flutter_gamepad/ios`)
 
+SPEC REPOS:
+  trunk:
+    - Flutter
+
 EXTERNAL SOURCES:
-  Flutter:
-    :path: ".symlinks/flutter/ios"
   flutter_gamepad:
     :path: ".symlinks/plugins/flutter_gamepad/ios"
 
 SPEC CHECKSUMS:
-  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  Flutter: 1c17b7bc8cd10f9f85f9dbc56caee3074756daad
   flutter_gamepad: 30d3b99e0c4de42f2ec5b78602f089dc734a1c8e
 
 PODFILE CHECKSUM: 4cc3c1c9b4427506ba49e9ba584daf3361ee4b64
 
-COCOAPODS: 1.9.2
+COCOAPODS: 1.10.1
