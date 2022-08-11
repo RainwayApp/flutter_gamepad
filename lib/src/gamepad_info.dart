@@ -24,10 +24,10 @@ class GamepadInfo {
   final int id;
 
   const GamepadInfo({
-    @required this.vendorName,
-    @required this.productCategory,
-    @required this.isAttachedToDevice,
-    @required this.id,
+    required this.vendorName,
+    required this.productCategory,
+    required this.isAttachedToDevice,
+    required this.id,
   });
 
   /// Decode a GamepadInfo object from a platform channel message.
